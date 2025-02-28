@@ -131,7 +131,7 @@ export function TextProcessor() {
               role: "user",
               parts: [
                 {
-                  text: `Rewrite the input text in ${countWords(inputText)} words and in the writing style with NO detectable patterns. Every sentence structure + grammar random. Include grammatical mistakes throughout, that 99% of humans wouldn't spot. 1st grade simple language. Change the writing style every sentence...ReWrite in simple English...\n\nSubmit your response in the following tag:\n<o>  \nYour Rewritten text Here\n</o>  `
+                  text: `Rewrite the input text in ${countWords(inputText)} words and in the writing style with NO detectable patterns. Every sentence structure + grammar random. Include grammatical mistakes throughout, that 99% of humans wouldn't spot. 1st grade simple language. But dont make the tone too childish or cringe. Change the writing style every sentence...\n\nSubmit your response in the following tag:\n<o>  \nYour Rewritten text Here\n</o>  `
                 }
               ]
             },
