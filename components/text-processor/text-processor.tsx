@@ -2,14 +2,20 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Check, ClipboardCopy, FileText, RotateCcw, Copy, X } from "lucide-react"
 
+const SAMPLE_TEXT = `The history of space exploration is a testament to human curiosity, ambition, and technological progress. It began in the mid-20th century, primarily fueled by the Cold War rivalry between the United States and the Soviet Union. The Space Age officially commenced on October 4, 1957, when the Soviet Union launched *Sputnik 1*, the world's first artificial satellite, proving that humanity could reach beyond Earth. Soon after, in 1957, the Soviets sent *Laika*, the first living being in orbit, followed by Yuri Gagarin's historic spaceflight aboard *Vostok 1* in 1961, making him the first human to travel to space. 
+
+In response, the U.S. launched the Apollo program, culminating in the Apollo 11 mission on July 20, 1969, when Neil Armstrong and Buzz Aldrin became the first humans to walk on the Moon. In the following decades, space agencies developed space stations like *Mir* and the International Space Station (ISS), sent robotic missions to distant planets, and introduced reusable spacecraft like the Space Shuttle. The 21st century saw the emergence of private space companies such as SpaceX, Blue Origin, and Virgin Galactic, making space travel more commercially viable. With ongoing plans for Mars colonization, lunar bases, and deep-space exploration, humanity continues to push the frontiers of the cosmos, searching for new worlds and extraterrestrial life while advancing science and technology.`
+
 export function TextProcessor() {
   const [wordCount, setWordCount] = useState({ input: 0, output: 0 })
   const [isInputActive, setIsInputActive] = useState(false)
+  const [inputText, setInputText] = useState("")
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   const countWords = (text: string) => {
     return text
@@ -19,9 +25,11 @@ export function TextProcessor() {
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value
+    setInputText(value)
     setWordCount((prev) => ({
       ...prev,
-      input: countWords(e.target.value),
+      input: countWords(value),
     }))
     setIsInputActive(true)
   }
@@ -36,6 +44,35 @@ export function TextProcessor() {
     }
   }
 
+  const handleTrySample = () => {
+    setInputText(SAMPLE_TEXT)
+    setWordCount((prev) => ({
+      ...prev,
+      input: countWords(SAMPLE_TEXT),
+    }))
+    setIsInputActive(true)
+    if (textareaRef.current) {
+      textareaRef.current.focus()
+    }
+  }
+
+  const handlePasteText = async () => {
+    try {
+      const text = await navigator.clipboard.readText()
+      setInputText(text)
+      setWordCount((prev) => ({
+        ...prev,
+        input: countWords(text),
+      }))
+      setIsInputActive(true)
+      if (textareaRef.current) {
+        textareaRef.current.focus()
+      }
+    } catch (err) {
+      console.error("Failed to read clipboard contents: ", err)
+    }
+  }
+
   return (
     <div className="mx-auto max-w-7xl rounded-3xl border border-gray-800/50 bg-[#0A0A0A]/50 p-6 backdrop-blur-sm">
       {/* Text Areas */}
@@ -44,18 +81,20 @@ export function TextProcessor() {
         <div className="flex flex-col gap-4">
           <div className="relative">
             <Textarea
+              ref={textareaRef}
               placeholder="Enter your text here..."
               className="min-h-[400px] resize-none rounded-2xl border-gray-800 bg-[#1A1A1A] p-4 text-gray-200 placeholder:text-gray-600 focus:border-blue-600 focus:ring-0"
               onChange={handleInputChange}
               onFocus={handleInputFocus}
               onBlur={handleInputBlur}
+              value={inputText}
             />
             {(!isInputActive || wordCount.input === 0) && (
               <div className="absolute inset-0 flex items-center justify-center gap-4 pointer-events-none">
                 <Button
                   variant="outline"
                   className="flex items-center gap-2 rounded-lg border-gray-800 bg-[#1A1A1A] text-gray-300 hover:bg-[#252525] pointer-events-auto"
-                  onClick={() => setIsInputActive(true)}
+                  onClick={handleTrySample}
                 >
                   <FileText className="h-4 w-4" />
                   Try A Sample
@@ -63,7 +102,7 @@ export function TextProcessor() {
                 <Button
                   variant="outline"
                   className="flex items-center gap-2 rounded-lg border-gray-800 bg-[#1A1A1A] text-gray-300 hover:bg-[#252525] pointer-events-auto"
-                  onClick={() => setIsInputActive(true)}
+                  onClick={handlePasteText}
                 >
                   <ClipboardCopy className="h-4 w-4" />
                   Paste Text
@@ -165,4 +204,3 @@ export function TextProcessor() {
     </div>
   )
 }
-

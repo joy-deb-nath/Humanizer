@@ -41,4 +41,7 @@ Key Conventions
 
 Follow Next.js docs for Data Fetching, Rendering, and Routing.
 
-Use Short Commit Message.
+Follow these files for best practices in the "Instructions" folder:
+- appflow.md
+- prd.md
+- current-status.md
