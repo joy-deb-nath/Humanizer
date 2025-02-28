@@ -4,6 +4,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Brain } from "lucide-react"
 import { AuthButton } from "./auth/AuthButton"
+import { WordUsageDisplay } from "./word-usage/WordUsageDisplay"
 
 export function Header() {
   return (
@@ -25,6 +26,7 @@ export function Header() {
           </Link>
         </nav>
         <div className="flex items-center gap-4">
+          <WordUsageDisplay showText={true} />
           <AuthButton />
         </div>
       </div>

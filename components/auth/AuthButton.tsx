@@ -1,5 +1,6 @@
 'use client';
 
+import Link from "next/link";
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import {
@@ -21,9 +22,11 @@ import {
   HelpCircle, 
   LogOut, 
   Crown, 
-  UserPlus 
+  UserPlus,
+  BarChart3 
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { WordUsageDisplay } from '../word-usage/WordUsageDisplay';
 
 export function AuthButton() {
   const { user, isLoading, isError, signIn, signOut } = useAuth();
@@ -119,6 +122,23 @@ export function AuthButton() {
               <p className="text-xs text-gray-500 truncate">{userEmail}</p>
             </div>
           </DropdownMenuLabel>
+          
+          {/* Word Usage Section */}
+          <div className="px-2 py-2 pt-1">
+            <div className="flex items-center justify-between mb-1.5">
+              <div className="flex items-center text-sm">
+                <BarChart3 className="h-3.5 w-3.5 mr-1.5 text-indigo-400" />
+                <span className="text-sm font-medium">Word Usage</span>
+              </div>
+              <Link 
+                href="/dashboard/usage" 
+                className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors">
+                Details
+              </Link>
+            </div>
+            <WordUsageDisplay showProgress={true} className="w-full" />
+          </div>
+          
           <DropdownMenuSeparator />
           <DropdownMenuGroup>
             <DropdownMenuItem>
