@@ -63,12 +63,13 @@ export function AuthButton() {
 
   if (!user) {
     return (
-      <Button 
-        onClick={signIn}
-        className="bg-indigo-600 hover:bg-indigo-700"
-      >
-        Sign in with Google
-      </Button>
+      <Link href="/auth">
+        <Button 
+          className="bg-indigo-600 hover:bg-indigo-700"
+        >
+          Start for Free
+        </Button>
+      </Link>
     );
   }
 
