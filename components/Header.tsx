@@ -1,34 +1,33 @@
+'use client';
+
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Brain } from "lucide-react"
+import { AuthButton } from "./auth/AuthButton"
 
 export function Header() {
   return (
-    <header className="border-b border-gray-800 bg-[#0A051A]">
+    <header className="border-b border-gray-800 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex flex-col items-center justify-between gap-4 p-4 md:flex-row">
         <div className="flex items-center gap-2">
           <Brain className="h-6 w-6 text-indigo-500" />
-          <span className="font-bold">Humanize.io</span>
+          <span className="font-bold text-foreground">Humanize.io</span>
         </div>
-        <div className="flex items-center gap-4">
-          <Link href="#" className="text-gray-400 hover:text-white">
+        <nav className="flex items-center gap-4">
+          <Link href="#" className="text-muted-foreground hover:text-foreground transition-colors">
             Features
           </Link>
-          <Link href="#" className="text-gray-400 hover:text-white">
+          <Link href="#" className="text-muted-foreground hover:text-foreground transition-colors">
             Pricing
           </Link>
-          <Link href="#" className="text-gray-400 hover:text-white">
+          <Link href="#" className="text-muted-foreground hover:text-foreground transition-colors">
             Contact
           </Link>
-        </div>
+        </nav>
         <div className="flex items-center gap-4">
-          <Button variant="ghost" className="text-gray-400 hover:text-white">
-            Login
-          </Button>
-          <Button className="bg-indigo-600 hover:bg-indigo-700">Start for Free</Button>
+          <AuthButton />
         </div>
       </div>
     </header>
   )
 }
-

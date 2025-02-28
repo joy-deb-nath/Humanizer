@@ -1,9 +1,10 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import { Providers } from '@/components/providers/Providers'
 
 export const metadata: Metadata = {
-  title: 'v0 App',
-  description: 'Created with v0',
+  title: 'Humanize.io',
+  description: 'Transform your text with AI',
   generator: 'v0.dev',
 }
 
@@ -14,7 +15,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body className="min-h-screen bg-background text-foreground">
+        <Providers>
+          {children}
+        </Providers>
+      </body>
     </html>
   )
 }
