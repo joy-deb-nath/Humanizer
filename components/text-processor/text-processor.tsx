@@ -18,6 +18,7 @@ export function TextProcessor() {
   const [outputText, setOutputText] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [hasError, setHasError] = useState(false)
+  const [showResults, setShowResults] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   const countWords = (text: string) => {
@@ -45,6 +46,12 @@ export function TextProcessor() {
     if (e.target.value.trim() === "") {
       setIsInputActive(false)
     }
+  }
+
+  const handleInputReset = () => {
+    setInputText("")
+    setWordCount((prev) => ({ ...prev, input: 0 }))
+    setIsInputActive(false)
   }
 
   const handleTrySample = () => {
@@ -92,6 +99,7 @@ export function TextProcessor() {
     setIsLoading(true)
     setHasError(false)
     setOutputText("")
+    setShowResults(false)
 
     try {
       // Replace with your actual API key or use an environment variable
@@ -153,6 +161,7 @@ export function TextProcessor() {
           ...prev,
           output: countWords(processedText),
         }))
+        setShowResults(true)
       } else {
         throw new Error("Unexpected response format from Gemini API")
       }
@@ -180,6 +189,7 @@ export function TextProcessor() {
     setOutputText("")
     setWordCount((prev) => ({ ...prev, output: 0 }))
     setHasError(false)
+    setShowResults(false)
   }
 
   return (
@@ -192,7 +202,7 @@ export function TextProcessor() {
             <Textarea
               ref={textareaRef}
               placeholder="Enter your text here..."
-              className="min-h-[400px] resize-none rounded-2xl border-gray-800 bg-[#1A1A1A] p-4 text-gray-200 placeholder:text-gray-600 focus:border-blue-600 focus:ring-0"
+              className="min-h-[400px] resize-none rounded-2xl border-gray-800 bg-[#1A1A1A] p-4 text-gray-200 placeholder:text-gray-600 focus:border-blue-600 focus:ring-0 no-scrollbar"
               onChange={handleInputChange}
               onFocus={handleInputFocus}
               onBlur={handleInputBlur}
@@ -220,16 +230,20 @@ export function TextProcessor() {
             )}
           </div>
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button variant="outline" className="text-sm text-indigo-500 hover:text-indigo-400">
-                Check for AI
+            <div className="flex items-center gap-2 text-sm text-gray-500">
+              {wordCount.input} Words
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-8 w-8 text-gray-500 hover:text-gray-400"
+                onClick={handleInputReset}
+                disabled={!inputText}
+              >
+                <RotateCcw className="h-4 w-4" />
               </Button>
-              <div className="flex items-center gap-2 text-sm text-gray-500">
-                {wordCount.input} Words
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-500 hover:text-gray-400">
-                  <Copy className="h-4 w-4" />
-                </Button>
-              </div>
+              <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-500 hover:text-gray-400">
+                <Copy className="h-4 w-4" />
+              </Button>
             </div>
             <Button 
               className="bg-indigo-600 text-sm hover:bg-indigo-700" 
@@ -250,7 +264,7 @@ export function TextProcessor() {
 
         {/* Output Section */}
         <div className="flex flex-col gap-4">
-          <div className={`min-h-[400px] rounded-2xl border border-gray-800 bg-[#1A1A1A] p-4 ${hasError ? 'border-red-600/50' : ''}`}>
+          <div className={`min-h-[400px] max-h-[400px] overflow-auto rounded-2xl border border-gray-800 bg-[#1A1A1A] p-4 ${hasError ? 'border-red-600/50' : ''} no-scrollbar`}>
             {isLoading ? (
               <div className="flex h-full flex-col items-center justify-center">
                 <Loader2 className="h-10 w-10 animate-spin text-indigo-600 mb-4" />
@@ -260,7 +274,7 @@ export function TextProcessor() {
               <Textarea
                 readOnly
                 value={outputText}
-                className="min-h-[390px] w-full resize-none bg-transparent text-gray-200 focus:ring-0 border-none"
+                className="min-h-[390px] max-h-[390px] w-full resize-none bg-transparent text-gray-200 focus:ring-0 border-none no-scrollbar"
               />
             ) : (
               <div className="flex h-full flex-col items-center justify-center">
@@ -302,54 +316,56 @@ export function TextProcessor() {
       </div>
 
       {/* Results Section */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 rounded-2xl border border-gray-800 bg-[#1A1A1A] p-6">
-        {/* Left side - Main result */}
-        <div className="flex flex-col items-center justify-center text-center h-full">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-500/20 mb-3">
-            <Check className="h-6 w-6 text-green-500" />
+      {showResults && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 rounded-2xl border border-gray-800 bg-[#1A1A1A] p-6">
+          {/* Left side - Main result */}
+          <div className="flex flex-col items-center justify-center text-center h-full">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-500/20 mb-3">
+              <Check className="h-6 w-6 text-green-500" />
+            </div>
+            <p className="text-lg text-gray-300">The output content is most likely human-written.</p>
           </div>
-          <p className="text-lg text-gray-300">The output content is most likely human-written.</p>
-        </div>
 
-        {/* Right side - Detailed results */}
-        <div className="flex flex-col items-center text-center space-y-4">
-          <p className="text-sm text-gray-400">Checking result:</p>
-          <div className="flex flex-wrap justify-center gap-4">
-            {[
-              { name: "GPTZero", status: true },
-              { name: "Copyleaks", status: true },
-              { name: "ZeroGPT", status: true },
-              { name: "Crossplag", status: true },
-              { name: "Sapling", status: true },
-              { name: "Writer", status: true },
-            ].map((detector) => (
-              <div
-                key={detector.name}
-                className="flex items-center gap-2 rounded-full border border-gray-800 bg-[#252525] px-3 py-1.5"
-              >
-                <div className="h-4 w-4 rounded-full bg-gray-700" />
-                <span className="text-sm text-gray-300">{detector.name}</span>
+          {/* Right side - Detailed results */}
+          <div className="flex flex-col items-center text-center space-y-4">
+            <p className="text-sm text-gray-400">Checking result:</p>
+            <div className="flex flex-wrap justify-center gap-4">
+              {[
+                { name: "GPTZero", status: true },
+                { name: "Copyleaks", status: true },
+                { name: "ZeroGPT", status: true },
+                { name: "Crossplag", status: true },
+                { name: "Sapling", status: true },
+                { name: "Writer", status: true },
+              ].map((detector) => (
+                <div
+                  key={detector.name}
+                  className="flex items-center gap-2 rounded-full border border-gray-800 bg-[#252525] px-3 py-1.5"
+                >
+                  <div className="h-4 w-4 rounded-full bg-gray-700" />
+                  <span className="text-sm text-gray-300">{detector.name}</span>
+                  <Check className="h-4 w-4 text-green-500" />
+                </div>
+              ))}
+            </div>
+
+            <div className="flex flex-wrap justify-center gap-3">
+              <div className="flex items-center gap-2 text-sm">
                 <Check className="h-4 w-4 text-green-500" />
+                <span className="text-green-500">Human-written</span>
               </div>
-            ))}
-          </div>
-
-          <div className="flex flex-wrap justify-center gap-3">
-            <div className="flex items-center gap-2 text-sm">
-              <Check className="h-4 w-4 text-green-500" />
-              <span className="text-green-500">Human-written</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm">
-              <div className="h-4 w-4 rounded-full border-2 border-gray-600" />
-              <span className="text-gray-400">50% Human-written</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm">
-              <X className="h-4 w-4 text-red-500" />
-              <span className="text-red-500">AI-generated</span>
+              <div className="flex items-center gap-2 text-sm">
+                <div className="h-4 w-4 rounded-full border-2 border-gray-600" />
+                <span className="text-gray-400">50% Human-written</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <X className="h-4 w-4 text-red-500" />
+                <span className="text-red-500">AI-generated</span>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }
