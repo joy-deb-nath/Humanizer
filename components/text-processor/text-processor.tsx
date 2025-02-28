@@ -5,7 +5,7 @@ import type React from "react"
 import { useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { Check, ClipboardCopy, FileText, RotateCcw, Copy, X } from "lucide-react"
+import { Check, ClipboardCopy, FileText, RotateCcw, Copy, X, Loader2 } from "lucide-react"
 
 const SAMPLE_TEXT = `The history of space exploration is a testament to human curiosity, ambition, and technological progress. It began in the mid-20th century, primarily fueled by the Cold War rivalry between the United States and the Soviet Union. The Space Age officially commenced on October 4, 1957, when the Soviet Union launched *Sputnik 1*, the world's first artificial satellite, proving that humanity could reach beyond Earth. Soon after, in 1957, the Soviets sent *Laika*, the first living being in orbit, followed by Yuri Gagarin's historic spaceflight aboard *Vostok 1* in 1961, making him the first human to travel to space. 
 
@@ -15,6 +15,9 @@ export function TextProcessor() {
   const [wordCount, setWordCount] = useState({ input: 0, output: 0 })
   const [isInputActive, setIsInputActive] = useState(false)
   const [inputText, setInputText] = useState("")
+  const [outputText, setOutputText] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+  const [hasError, setHasError] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   const countWords = (text: string) => {
@@ -73,6 +76,112 @@ export function TextProcessor() {
     }
   }
 
+  const extractOutputFromResponse = (responseText: string): string => {
+    // Extract text between <o> tags - using a workaround for the dotAll flag
+    const match = responseText.match(/<o>([\s\S]+?)<\/o>/)
+    return match ? match[1].trim() : responseText
+  }
+
+  const handleHumanize = async () => {
+    if (!inputText.trim()) {
+      setOutputText("Please enter some text to humanize")
+      setHasError(true)
+      return
+    }
+
+    setIsLoading(true)
+    setHasError(false)
+    setOutputText("")
+
+    try {
+      // Replace with your actual API key or use an environment variable
+      const API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY || ""
+      
+      if (!API_KEY) {
+        throw new Error("Gemini API key is not configured")
+      }
+
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-pro-exp-02-05:generateContent?key=${API_KEY}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            contents: [
+              {
+                role: "user",
+                parts: [
+                  {
+                    text: inputText
+                  }
+                ]
+              }
+            ],
+            systemInstruction: {
+              role: "user",
+              parts: [
+                {
+                  text: `Rewrite the input text in ${countWords(inputText)} words and in the writing style with NO detectable patterns. Every sentence structure + grammar random. Include grammatical mistakes throughout, that 99% of humans wouldn't spot. 1st grade simple language. Change the writing style every sentence...ReWrite in simple English...\n\nSubmit your response in the following tag:\n<o>  \nYour Rewritten text Here\n</o>  `
+                }
+              ]
+            },
+            generationConfig: {
+              temperature: 1,
+              topK: 40,
+              topP: 0.95,
+              maxOutputTokens: 8192,
+              responseMimeType: "text/plain"
+            }
+          }),
+        }
+      )
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error?.message || "Failed to get response from Gemini API")
+      }
+
+      const data = await response.json()
+      
+      if (data.candidates && data.candidates.length > 0 && data.candidates[0].content) {
+        const text = data.candidates[0].content.parts[0].text
+        const processedText = extractOutputFromResponse(text)
+        setOutputText(processedText)
+        setWordCount((prev) => ({
+          ...prev,
+          output: countWords(processedText),
+        }))
+      } else {
+        throw new Error("Unexpected response format from Gemini API")
+      }
+    } catch (error) {
+      console.error("Error calling Gemini API:", error)
+      setOutputText(`Error: ${error instanceof Error ? error.message : "Failed to humanize text"}`)
+      setHasError(true)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleCopyOutput = async () => {
+    if (outputText) {
+      try {
+        await navigator.clipboard.writeText(outputText)
+        // Could add a toast notification here
+      } catch (err) {
+        console.error("Failed to copy text:", err)
+      }
+    }
+  }
+
+  const handleReset = () => {
+    setOutputText("")
+    setWordCount((prev) => ({ ...prev, output: 0 }))
+    setHasError(false)
+  }
+
   return (
     <div className="mx-auto max-w-7xl rounded-3xl border border-gray-800/50 bg-[#0A0A0A]/50 p-6 backdrop-blur-sm">
       {/* Text Areas */}
@@ -122,29 +231,69 @@ export function TextProcessor() {
                 </Button>
               </div>
             </div>
-            <Button className="bg-indigo-600 text-sm hover:bg-indigo-700">Humanize</Button>
+            <Button 
+              className="bg-indigo-600 text-sm hover:bg-indigo-700" 
+              onClick={handleHumanize}
+              disabled={isLoading || !inputText.trim()}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                "Humanize"
+              )}
+            </Button>
           </div>
         </div>
 
         {/* Output Section */}
         <div className="flex flex-col gap-4">
-          <div className="flex min-h-[400px] flex-col items-center justify-center rounded-2xl border border-gray-800 bg-[#1A1A1A] p-4">
-            <div className="mb-4 h-16 w-16 rounded-2xl bg-indigo-600/20 p-4">
-              <img
-                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/humanizeAI%20UI%20Design%2002.jpg-1daEDDuGpF6S3e6pKxPWsoYcfmEddw.jpeg"
-                alt=""
-                className="h-8 w-8"
+          <div className={`min-h-[400px] rounded-2xl border border-gray-800 bg-[#1A1A1A] p-4 ${hasError ? 'border-red-600/50' : ''}`}>
+            {isLoading ? (
+              <div className="flex h-full flex-col items-center justify-center">
+                <Loader2 className="h-10 w-10 animate-spin text-indigo-600 mb-4" />
+                <p className="text-gray-400">Humanizing your text...</p>
+              </div>
+            ) : outputText ? (
+              <Textarea
+                readOnly
+                value={outputText}
+                className="min-h-[390px] w-full resize-none bg-transparent text-gray-200 focus:ring-0 border-none"
               />
-            </div>
-            <h3 className="text-lg font-medium text-gray-200">Humanize Result</h3>
+            ) : (
+              <div className="flex h-full flex-col items-center justify-center">
+                <div className="mb-4 h-16 w-16 rounded-2xl bg-indigo-600/20 p-4">
+                  <img
+                    src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/humanizeAI%20UI%20Design%2002.jpg-1daEDDuGpF6S3e6pKxPWsoYcfmEddw.jpeg"
+                    alt=""
+                    className="h-8 w-8"
+                  />
+                </div>
+                <h3 className="text-lg font-medium text-gray-200">Humanize Result</h3>
+              </div>
+            )}
           </div>
           <div className="flex items-center justify-end">
             <div className="flex items-center gap-2 text-sm text-gray-500">
               {wordCount.output} Words
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-500 hover:text-gray-400">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-8 w-8 text-gray-500 hover:text-gray-400"
+                onClick={handleReset}
+                disabled={!outputText}
+              >
                 <RotateCcw className="h-4 w-4" />
               </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-500 hover:text-gray-400">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-8 w-8 text-gray-500 hover:text-gray-400"
+                onClick={handleCopyOutput}
+                disabled={!outputText}
+              >
                 <Copy className="h-4 w-4" />
               </Button>
             </div>
