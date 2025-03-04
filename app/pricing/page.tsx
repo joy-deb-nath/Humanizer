@@ -1,10 +1,35 @@
+'use client';
+
 import { Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import Link from "next/link"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useRouter } from "next/navigation"
+import { useAuth } from "@/hooks/useAuth"
+import { useState, useEffect } from "react"
+import Link from "next/link"
 
 export default function PricingPage() {
+  const router = useRouter();
+  const { user, isLoading } = useAuth();
+  const [isMounted, setIsMounted] = useState(false);
+  
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  const handlePlanSelection = (planId: string) => {
+    if (!isMounted) return;
+    
+    // If user is authenticated, redirect to billing page
+    if (user) {
+      router.push(`/billing?plan=${planId}`);
+    } else {
+      // If not authenticated, redirect to auth page with plan in URL
+      router.push(`/auth?plan=${planId}`);
+    }
+  };
+
   return (
     <div className="container mx-auto py-16 px-4 sm:px-6 lg:px-8">
       <div className="text-center mb-16">
@@ -50,7 +75,7 @@ export default function PricingPage() {
                 "Full feature access"
               ]}
               ctaLabel="Choose Basic"
-              ctaLink="/auth/signin?plan=basic-monthly"
+              onSelect={() => handlePlanSelection("basic-monthly")}
               highlighted={false}
             />
 
@@ -67,7 +92,7 @@ export default function PricingPage() {
                 "Full feature access"
               ]}
               ctaLabel="Choose Standard"
-              ctaLink="/auth/signin?plan=standard-monthly"
+              onSelect={() => handlePlanSelection("standard-monthly")}
               highlighted={true}
             />
 
@@ -84,7 +109,7 @@ export default function PricingPage() {
                 "Full feature access"
               ]}
               ctaLabel="Choose Plus"
-              ctaLink="/auth/signin?plan=plus-monthly"
+              onSelect={() => handlePlanSelection("plus-monthly")}
               highlighted={false}
             />
 
@@ -101,7 +126,7 @@ export default function PricingPage() {
                 "Full feature access"
               ]}
               ctaLabel="Choose Agency"
-              ctaLink="/auth/signin?plan=agency-monthly"
+              onSelect={() => handlePlanSelection("agency-monthly")}
               highlighted={false}
             />
           </div>
@@ -124,7 +149,7 @@ export default function PricingPage() {
                 "Full feature access"
               ]}
               ctaLabel="Choose Basic"
-              ctaLink="/auth/signin?plan=basic-yearly"
+              onSelect={() => handlePlanSelection("basic-yearly")}
               highlighted={false}
             />
 
@@ -142,7 +167,7 @@ export default function PricingPage() {
                 "Full feature access"
               ]}
               ctaLabel="Choose Standard"
-              ctaLink="/auth/signin?plan=standard-yearly"
+              onSelect={() => handlePlanSelection("standard-yearly")}
               highlighted={true}
             />
 
@@ -160,7 +185,7 @@ export default function PricingPage() {
                 "Full feature access"
               ]}
               ctaLabel="Choose Plus"
-              ctaLink="/auth/signin?plan=plus-yearly"
+              onSelect={() => handlePlanSelection("plus-yearly")}
               highlighted={false}
             />
 
@@ -178,7 +203,7 @@ export default function PricingPage() {
                 "Full feature access"
               ]}
               ctaLabel="Choose Agency"
-              ctaLink="/auth/signin?plan=agency-yearly"
+              onSelect={() => handlePlanSelection("agency-yearly")}
               highlighted={false}
             />
           </div>
@@ -199,24 +224,37 @@ export default function PricingPage() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-6">
               <div className="flex items-start">
-                <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
-                <span>3,000 words per month</span>
+                <div className="rounded-full h-5 w-5 mt-0.5 mr-2 flex items-center justify-center bg-primary/20">
+                  <Check className="h-3 w-3 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-medium text-foreground">3,000 words</h3>
+                  <p className="text-sm text-muted-foreground">Per month</p>
+                </div>
               </div>
               <div className="flex items-start">
-                <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
-                <span>500 words per submission limit</span>
+                <div className="rounded-full h-5 w-5 mt-0.5 mr-2 flex items-center justify-center bg-primary/20">
+                  <Check className="h-3 w-3 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-medium text-foreground">500 words</h3>
+                  <p className="text-sm text-muted-foreground">Per submission</p>
+                </div>
               </div>
               <div className="flex items-start">
-                <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
-                <span>Standard customer support</span>
+                <div className="rounded-full h-5 w-5 mt-0.5 mr-2 flex items-center justify-center bg-primary/20">
+                  <Check className="h-3 w-3 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-medium text-foreground">Basic tools</h3>
+                  <p className="text-sm text-muted-foreground">For casual users</p>
+                </div>
               </div>
             </div>
           </CardContent>
-          <CardFooter className="flex justify-center">
-            <Button className="w-64" variant="outline" asChild>
-              <Link href="/auth/signin?plan=free">
-                Get Started for Free
-              </Link>
+          <CardFooter className="justify-center">
+            <Button variant="outline" onClick={() => router.push('/')}>
+              Get Started
             </Button>
           </CardFooter>
         </Card>
@@ -226,28 +264,29 @@ export default function PricingPage() {
       <div className="mt-24 text-center">
         <h2 className="text-3xl font-bold mb-6">Frequently Asked Questions</h2>
         <div className="max-w-3xl mx-auto text-left space-y-6">
-          <FAQItem
-            question="How does billing work?"
-            answer="You'll be billed either monthly or annually depending on your chosen plan. Payment is processed securely via Paddle."
-          />
-          <FAQItem
-            question="Can I upgrade or downgrade my plan?"
-            answer="Yes, you can change your plan at any time. When upgrading, you'll be charged the prorated amount for the remaining billing period. When downgrading, your new plan will take effect at the start of your next billing cycle."
-          />
-          <FAQItem
-            question="What happens when I reach my word limit?"
-            answer="When you reach your monthly word limit, you'll be prompted to upgrade your plan to continue using the service. Your limit resets at the start of each billing cycle."
-          />
-          <FAQItem
-            question="Do unused words roll over to the next month?"
-            answer="No, unused words do not roll over to the next month. Your word count resets at the beginning of each billing cycle."
-          />
+          <div className="border-b border-border pb-4">
+            <h3 className="font-semibold text-lg mb-2">How does billing work?</h3>
+            <p className="text-muted-foreground">You'll be billed either monthly or annually depending on your chosen plan. Payment is processed securely via Paddle.</p>
+          </div>
+          <div className="border-b border-border pb-4">
+            <h3 className="font-semibold text-lg mb-2">Can I upgrade or downgrade my plan?</h3>
+            <p className="text-muted-foreground">Yes, you can change your plan at any time. When upgrading, you'll be charged the prorated amount for the remaining billing period. When downgrading, your new plan will take effect at the start of your next billing cycle.</p>
+          </div>
+          <div className="border-b border-border pb-4">
+            <h3 className="font-semibold text-lg mb-2">What happens when I reach my word limit?</h3>
+            <p className="text-muted-foreground">When you reach your monthly word limit, you'll be prompted to upgrade your plan to continue using the service. Your limit resets at the start of each billing cycle.</p>
+          </div>
+          <div className="border-b border-border pb-4">
+            <h3 className="font-semibold text-lg mb-2">Do unused words roll over to the next month?</h3>
+            <p className="text-muted-foreground">No, unused words do not roll over to the next month. Your word count resets at the beginning of each billing cycle.</p>
+          </div>
         </div>
       </div>
     </div>
-  )
+  );
 }
 
+// Updated PricingCard component with onSelect event handler
 function PricingCard({
   title,
   description,
@@ -256,7 +295,7 @@ function PricingCard({
   billingNote,
   features,
   ctaLabel,
-  ctaLink,
+  onSelect,
   highlighted,
 }: {
   title: string
@@ -266,65 +305,43 @@ function PricingCard({
   billingNote?: string
   features: string[]
   ctaLabel: string
-  ctaLink: string
+  onSelect: () => void
   highlighted: boolean
 }) {
   return (
-    <Card className={`flex flex-col h-full ${
-      highlighted 
-        ? 'border-primary shadow-lg relative before:absolute before:inset-0 before:-z-10 before:rounded-xl before:bg-gradient-to-b before:from-primary/20 before:to-transparent before:blur-xl'
-        : ''
-    }`}>
-      {highlighted && (
-        <div className="absolute -top-4 left-0 right-0 flex justify-center">
-          <div className="bg-primary text-primary-foreground px-4 py-1 rounded-full text-sm font-medium">
-            Most Popular
-          </div>
-        </div>
-      )}
-      <CardHeader className={`pb-8 ${highlighted ? 'pt-8' : ''}`}>
-        <CardTitle className="text-xl font-bold">{title}</CardTitle>
+    <Card className={`flex flex-col h-full ${highlighted ? 'border-primary shadow-lg shadow-primary/20' : ''}`}>
+      <CardHeader className="flex-1">
+        <CardTitle className="text-xl font-semibold">{title}</CardTitle>
         <CardDescription>{description}</CardDescription>
-      </CardHeader>
-      <CardContent className="flex-grow">
-        <div className="flex items-baseline justify-center mb-6">
-          <span className="text-3xl font-bold text-foreground">{price}</span>
-          <span className="ml-1 text-muted-foreground">/{period}</span>
+        <div className="mt-4 flex items-baseline">
+          <span className="text-3xl font-bold tracking-tight">{price}</span>
+          <span className="ml-1 text-sm font-medium text-muted-foreground">/{period}</span>
         </div>
         {billingNote && (
-          <div className="text-sm text-muted-foreground mb-6 text-center">
-            {billingNote}
-          </div>
+          <p className="text-sm text-muted-foreground mt-1">{billingNote}</p>
         )}
+      </CardHeader>
+      <CardContent className="flex-1">
         <ul className="space-y-3">
-          {features.map((feature, index) => (
-            <li key={index} className="flex items-start">
-              <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
+          {features.map((feature, i) => (
+            <li key={i} className="flex items-start">
+              <div className="rounded-full h-5 w-5 mt-0.5 mr-2 flex items-center justify-center bg-primary/20">
+                <Check className="h-3 w-3 text-primary" />
+              </div>
               <span>{feature}</span>
             </li>
           ))}
         </ul>
       </CardContent>
-      <CardFooter className="pt-4">
-        <Button 
-          className="w-full" 
+      <CardFooter>
+        <Button
           variant={highlighted ? "default" : "outline"}
-          asChild
+          className="w-full"
+          onClick={onSelect}
         >
-          <Link href={ctaLink}>
-            {ctaLabel}
-          </Link>
+          {ctaLabel}
         </Button>
       </CardFooter>
     </Card>
-  )
-}
-
-function FAQItem({ question, answer }: { question: string; answer: string }) {
-  return (
-    <div className="border-b border-border pb-4">
-      <h3 className="font-semibold text-lg mb-2">{question}</h3>
-      <p className="text-muted-foreground">{answer}</p>
-    </div>
-  )
+  );
 }

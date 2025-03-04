@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,11 +12,15 @@ import { ExternalLink, Loader2 } from 'lucide-react';
 
 export default function AuthPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { signIn } = useAuth();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Get the plan from URL params
+  const plan = searchParams.get('plan');
 
   const handleEmailSignup = (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,7 +32,8 @@ export default function AuthPage() {
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
     try {
-      await signIn();
+      // Pass the plan parameter to the signIn method
+      await signIn(plan || undefined);
       // The redirect is handled by the OAuth callback
     } catch (error) {
       console.error('Error signing in with Google:', error);
@@ -45,6 +50,7 @@ export default function AuthPage() {
             <CardTitle className="text-2xl font-bold tracking-tight">Create your account</CardTitle>
             <CardDescription className="text-gray-400">
               Join thousands of users who transform their text with AI
+              {plan && <span className="block mt-2 font-medium">You've selected the {formatPlanName(plan)} plan</span>}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -134,4 +140,28 @@ export default function AuthPage() {
       </div>
     </div>
   );
+}
+
+// Helper function to format plan names for display
+function formatPlanName(planId: string): string {
+  if (!planId) return '';
+  
+  const parts = planId.split('-');
+  if (parts.length !== 2) return planId;
+  
+  const [tier, billing] = parts;
+  
+  const tierMap: Record<string, string> = {
+    'basic': 'Basic',
+    'standard': 'Standard',
+    'plus': 'Plus',
+    'agency': 'Agency'
+  };
+  
+  const billingMap: Record<string, string> = {
+    'monthly': 'Monthly',
+    'yearly': 'Yearly'
+  };
+  
+  return `${tierMap[tier] || tier} (${billingMap[billing] || billing})`;
 }

@@ -9,7 +9,7 @@ type AuthContextType = {
   user: User | null;
   isLoading: boolean;
   isError: boolean;
-  signIn: () => Promise<void>;
+  signIn: (plan?: string) => Promise<void>;
   signOut: () => Promise<void>;
 };
 
@@ -61,12 +61,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const signIn = async () => {
+  const signIn = async (plan?: string) => {
     try {
+      const redirectUrl = new URL(`${window.location.origin}/auth/callback`);
+      
+      // Add plan parameter to the callback URL if provided
+      if (plan) {
+        redirectUrl.searchParams.set('plan', plan);
+      }
+      
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: redirectUrl.toString(),
         },
       });
       if (error) throw error;
