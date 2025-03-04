@@ -147,30 +147,8 @@ export function AuthButton() {
               <span>Profile</span>
             </DropdownMenuItem>
             <DropdownMenuItem>
-              <CreditCard className="h-4 w-4 mr-2" />
-              <span>Manage Subscription</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem>
               <Settings className="h-4 w-4 mr-2" />
               <span>Settings</span>
-            </DropdownMenuItem>
-          </DropdownMenuGroup>
-          <DropdownMenuSeparator />
-          <DropdownMenuGroup>
-            {!isPremium ? (
-              <DropdownMenuItem>
-                <Crown className="h-4 w-4 mr-2 text-yellow-400" />
-                <span>Upgrade Plan</span>
-              </DropdownMenuItem>
-            ) : (
-              <DropdownMenuItem>
-                <Crown className="h-4 w-4 mr-2 text-yellow-400" />
-                <span>Subscription Details</span>
-              </DropdownMenuItem>
-            )}
-            <DropdownMenuItem>
-              <UserPlus className="h-4 w-4 mr-2" />
-              <span>Invite Team</span>
             </DropdownMenuItem>
           </DropdownMenuGroup>
           <DropdownMenuSeparator />

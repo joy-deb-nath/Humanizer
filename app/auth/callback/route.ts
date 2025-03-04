@@ -6,8 +6,8 @@ import type { NextRequest } from 'next/server';
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get('code');
-  const plan = requestUrl.searchParams.get('plan');
   const origin = requestUrl.origin;
+  const plan = requestUrl.searchParams.get('plan');
 
   try {
     if (code) {
@@ -16,13 +16,8 @@ export async function GET(request: NextRequest) {
       await supabase.auth.exchangeCodeForSession(code);
     }
 
-    // Redirect to billing page with plan param if available, otherwise go to home
-    if (plan) {
-      return NextResponse.redirect(`${origin}/billing?plan=${plan}`);
-    }
-    
-    // URL to redirect to after sign in process completes
-    return NextResponse.redirect(`${origin}/`);
+    // Always redirect to home or dashboard
+    return NextResponse.redirect(origin);
   } catch (error) {
     console.error('Auth callback error:', error);
     // Redirect to error page with specific error message
